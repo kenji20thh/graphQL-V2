@@ -1,0 +1,5 @@
+.profile-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.profile-grid{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.profile-card{padding:12px}
+.stats{display:flex;gap:12px}
+.chart{background:linear-gradient(180deg,#061122,#082033);padding:12px;border-radius:6px}
