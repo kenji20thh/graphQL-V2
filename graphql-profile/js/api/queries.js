@@ -1,91 +1,39 @@
-// ===== USER QUERIES =====
+// ===== ENHANCED PROFILE QUERY WITH MORE DATA =====
 
 /**
- * Get basic user information
+ * Get complete profile with audit data, skills, and detailed stats
  */
-export const GET_USER_INFO = `
-  query {
-    user {
-      id
-      login
-    }
-  }
-`;
-
-/**
- * Get user with first name and last name if available
- */
-export const GET_USER_PROFILE = `
+export const GET_ENHANCED_PROFILE = `
   query {
     user {
       id
       login
       attrs
+      auditRatio
+      totalUp
+      totalDown
     }
-  }
-`;
-
-// ===== XP QUERIES =====
-
-/**
- * Get all XP transactions for the user
- */
-export const GET_USER_XP = `
-  query {
-    transaction(
-      where: { type: { _eq: "xp" } }
-      order_by: { createdAt: asc }
-    ) {
-      id
-      type
-      amount
-      objectId
-      createdAt
-      path
-    }
-  }
-`;
-
-/**
- * Get total XP amount
- */
-export const GET_TOTAL_XP = `
-  query {
-    transaction_aggregate(
-      where: { type: { _eq: "xp" } }
-    ) {
+    
+    # Total XP
+    transaction_aggregate(where: { type: { _eq: "xp" } }) {
       aggregate {
         sum {
           amount
         }
       }
     }
-  }
-`;
-
-/**
- * Get XP grouped by project (path)
- */
-export const GET_XP_BY_PROJECT = `
-  query {
+    
+    # XP Transactions (for XP over time chart)
     transaction(
       where: { type: { _eq: "xp" } }
-      order_by: { amount: desc }
+      order_by: { createdAt: asc }
     ) {
       amount
-      path
       createdAt
+      path
     }
-  }
-`;
-
-// ===== PROGRESS & RESULTS QUERIES =====
-
-/**
- * Get user progress (projects/exercises)
- */
-export const GET_USER_PROGRESS = `
-  query {
+    
+    # Projects/Progress
     progress(
       order_by: { createdAt: desc }
     ) {
@@ -95,53 +43,35 @@ export const GET_USER_PROGRESS = `
       createdAt
       updatedAt
     }
-  }
-`;
-
-/**
- * Get results (pass/fail for projects)
- */
-export const GET_USER_RESULTS = `
-  query {
+    
+    # Results (for more detailed project info)
     result(
+      order_by: { createdAt: desc }
+      limit: 50
+    ) {
+      id
+      grade
+      path
+      createdAt
+    }
+    
+    # Audit transactions (audits given)
+    audit_given: transaction(
+      where: { type: { _eq: "up" } }
       order_by: { createdAt: desc }
     ) {
       id
-      grade
-      type
-      path
+      amount
       createdAt
+      path
     }
-  }
-`;
-
-// ===== AUDIT QUERIES =====
-
-/**
- * Get audit ratio (audits done vs audits received)
- */
-export const GET_AUDIT_RATIO = `
-  query {
-    user {
-      id
-      login
-      auditRatio
-      totalUp
-      totalDown
-    }
-  }
-`;
-
-/**
- * Get audit transactions
- */
-export const GET_AUDITS = `
-  query {
-    transaction(
-      where: { type: { _eq: "up" } }
+    
+    # Audit transactions (audits received)
+    audit_received: transaction(
+      where: { type: { _eq: "down" } }
+      order_by: { createdAt: desc }
     ) {
       id
-      type
       amount
       createdAt
       path
@@ -149,105 +79,153 @@ export const GET_AUDITS = `
   }
 `;
 
-// ===== OBJECT/PROJECT QUERIES =====
+// ===== SKILLS QUERY =====
 
 /**
- * Get information about a specific object (project/exercise)
+ * Get user skills from transactions
  */
-export const GET_OBJECT_INFO = `
-  query GetObject($objectId: Int!) {
-    object(where: { id: { _eq: $objectId } }) {
-      id
-      name
+export const GET_USER_SKILLS = `
+  query {
+    transaction(
+      where: { 
+        type: { _regex: "skill_" }
+      }
+      order_by: { amount: desc }
+    ) {
       type
-      attrs
+      amount
+      userId
     }
   }
 `;
 
+// ===== PISCINE SPECIFIC QUERIES =====
+
 /**
- * Get all projects
+ * Get Piscine statistics (Go or JS)
  */
-export const GET_ALL_OBJECTS = `
+export const GET_PISCINE_STATS = `
   query {
-    object(
-      where: { type: { _eq: "project" } }
+    # Piscine Go
+    piscine_go: progress(
+      where: { 
+        path: { _ilike: "%piscine-go%" }
+      }
+      order_by: { createdAt: asc }
     ) {
       id
-      name
-      type
+      grade
+      path
+      createdAt
+    }
+    
+    # Piscine JS
+    piscine_js: progress(
+      where: { 
+        path: { _ilike: "%piscine-js%" }
+      }
+      order_by: { createdAt: asc }
+    ) {
+      id
+      grade
+      path
+      createdAt
     }
   }
 `;
 
-// ===== COMBINED QUERY FOR PROFILE =====
+// ===== LEVEL/GRADE QUERY =====
 
 /**
- * Get complete profile data in one query
- * This is the main query you should use for the profile page
+ * Get highest level achieved
  */
-export const GET_COMPLETE_PROFILE = `
+export const GET_USER_LEVEL = `
   query {
-    user {
-      id
-      login
+    transaction(
+      where: { type: { _eq: "level" } }
+      order_by: { amount: desc }
+      limit: 1
+    ) {
+      amount
+      createdAt
     }
-    transaction_aggregate(where: { type: { _eq: "xp" } }) {
-      aggregate {
-        sum {
-          amount
-        }
+  }
+`;
+
+// ===== DETAILED PROJECT INFO =====
+
+/**
+ * Get detailed project information with object names
+ */
+export const GET_PROJECTS_DETAILED = `
+  query {
+    progress {
+      id
+      grade
+      path
+      createdAt
+      object {
+        id
+        name
+        type
       }
     }
+  }
+`;
+
+// ===== MONTHLY XP STATS =====
+
+/**
+ * Get XP grouped by month for trend analysis
+ */
+export const GET_MONTHLY_XP = `
+  query {
     transaction(
       where: { type: { _eq: "xp" } }
       order_by: { createdAt: asc }
-      limit: 50
     ) {
       amount
       createdAt
-      path
-    }
-    progress(order_by: { createdAt: desc }, limit: 20) {
-      grade
-      path
-      createdAt
     }
   }
 `;
 
-// ===== PISCINE STATS QUERIES =====
+// ===== ATTEMPT STATS (for exercises) =====
 
 /**
- * Get Piscine Go stats
+ * Get attempt statistics for exercises
  */
-export const GET_PISCINE_GO_STATS = `
+export const GET_ATTEMPT_STATS = `
   query {
-    progress(
-      where: { path: { _like: "%piscine-go%" } }
+    result(
       order_by: { createdAt: asc }
     ) {
-      id
+      objectId
       grade
       path
       createdAt
+      object {
+        name
+        type
+      }
     }
   }
 `;
 
-/**
- * Get Piscine JS stats
- */
-export const GET_PISCINE_JS_STATS = `
-  query {
-    progress(
-      where: { path: { _like: "%piscine-js%" } }
-      order_by: { createdAt: asc }
-    ) {
-      id
-      grade
-      path
-      createdAt
-    }
-  }
-`;
+// Export all queries
+export {
+  GET_USER_INFO,
+  GET_USER_PROFILE,
+  GET_USER_XP,
+  GET_TOTAL_XP,
+  GET_XP_BY_PROJECT,
+  GET_USER_PROGRESS,
+  GET_USER_RESULTS,
+  GET_AUDIT_RATIO,
+  GET_AUDITS,
+  GET_OBJECT_INFO,
+  GET_ALL_OBJECTS,
+  GET_COMPLETE_PROFILE,
+  GET_PISCINE_GO_STATS,
+  GET_PISCINE_JS_STATS
+} from './queries.js';
