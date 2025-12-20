@@ -1,8 +1,65 @@
+// ===== MAIN ENHANCED PROFILE QUERY =====
+// This is the primary query used in main.js
+
+export const GET_ENHANCED_PROFILE = `
+  query {
+    user {
+      id
+      login
+      attrs
+    }
+    
+    transaction_aggregate(where: { type: { _eq: "xp" } }) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+    
+    transaction(
+      where: { type: { _eq: "xp" } }
+      order_by: { createdAt: asc }
+    ) {
+      amount
+      createdAt
+      path
+    }
+    
+    progress(
+      order_by: { createdAt: desc }
+    ) {
+      id
+      grade
+      path
+      createdAt
+      updatedAt
+    }
+    
+    audit_up: transaction_aggregate(
+      where: { type: { _eq: "up" } }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+    
+    audit_down: transaction_aggregate(
+      where: { type: { _eq: "down" } }
+    ) {
+      aggregate {
+        sum {
+          amount
+        }
+      }
+    }
+  }
+`;
+
 // ===== USER QUERIES =====
 
-/**
- * Get basic user information
- */
 export const GET_USER_INFO = `
   query {
     user {
@@ -12,9 +69,6 @@ export const GET_USER_INFO = `
   }
 `;
 
-/**
- * Get user with first name and last name if available
- */
 export const GET_USER_PROFILE = `
   query {
     user {
@@ -27,9 +81,6 @@ export const GET_USER_PROFILE = `
 
 // ===== XP QUERIES =====
 
-/**
- * Get all XP transactions for the user
- */
 export const GET_USER_XP = `
   query {
     transaction(
@@ -46,9 +97,6 @@ export const GET_USER_XP = `
   }
 `;
 
-/**
- * Get total XP amount
- */
 export const GET_TOTAL_XP = `
   query {
     transaction_aggregate(
@@ -63,9 +111,6 @@ export const GET_TOTAL_XP = `
   }
 `;
 
-/**
- * Get XP grouped by project (path)
- */
 export const GET_XP_BY_PROJECT = `
   query {
     transaction(
@@ -81,9 +126,6 @@ export const GET_XP_BY_PROJECT = `
 
 // ===== PROGRESS & RESULTS QUERIES =====
 
-/**
- * Get user progress (projects/exercises)
- */
 export const GET_USER_PROGRESS = `
   query {
     progress(
@@ -98,9 +140,6 @@ export const GET_USER_PROGRESS = `
   }
 `;
 
-/**
- * Get results (pass/fail for projects)
- */
 export const GET_USER_RESULTS = `
   query {
     result(
@@ -117,9 +156,6 @@ export const GET_USER_RESULTS = `
 
 // ===== AUDIT QUERIES =====
 
-/**
- * Get audit ratio (audits done vs audits received)
- */
 export const GET_AUDIT_RATIO = `
   query {
     user {
@@ -132,9 +168,6 @@ export const GET_AUDIT_RATIO = `
   }
 `;
 
-/**
- * Get audit transactions
- */
 export const GET_AUDITS = `
   query {
     transaction(
@@ -151,9 +184,6 @@ export const GET_AUDITS = `
 
 // ===== OBJECT/PROJECT QUERIES =====
 
-/**
- * Get information about a specific object (project/exercise)
- */
 export const GET_OBJECT_INFO = `
   query GetObject($objectId: Int!) {
     object(where: { id: { _eq: $objectId } }) {
@@ -165,9 +195,6 @@ export const GET_OBJECT_INFO = `
   }
 `;
 
-/**
- * Get all projects
- */
 export const GET_ALL_OBJECTS = `
   query {
     object(
@@ -180,12 +207,8 @@ export const GET_ALL_OBJECTS = `
   }
 `;
 
-// ===== COMBINED QUERY FOR PROFILE =====
+// ===== BASIC COMPLETE PROFILE QUERY =====
 
-/**
- * Get complete profile data in one query
- * This is the main query you should use for the profile page
- */
 export const GET_COMPLETE_PROFILE = `
   query {
     user {
@@ -218,9 +241,6 @@ export const GET_COMPLETE_PROFILE = `
 
 // ===== PISCINE STATS QUERIES =====
 
-/**
- * Get Piscine Go stats
- */
 export const GET_PISCINE_GO_STATS = `
   query {
     progress(
@@ -235,9 +255,6 @@ export const GET_PISCINE_GO_STATS = `
   }
 `;
 
-/**
- * Get Piscine JS stats
- */
 export const GET_PISCINE_JS_STATS = `
   query {
     progress(
