@@ -7,3 +7,4 @@ export const APP_TITLE = 'GraphQL Profile';
 
 // GraphQL Settings
 export const GRAPHQL_TIMEOUT = 10000; // 10 seconds
+
